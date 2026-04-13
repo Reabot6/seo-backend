@@ -28,6 +28,14 @@ Route::options(':path', function () {
 // ─────────────────────────────────────────
 // ALL ROUTES WITH CORS MIDDLEWARE
 // ─────────────────────────────────────────
+Route::get('api/test-db', function() {
+    try {
+        $result = \think\facade\Db::query('SELECT 1 as test');
+        return json(['status' => 'connected', 'result' => $result]);
+    } catch (\Exception $e) {
+        return json(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+});
 Route::group('', function () {
 
     Route::get('api/article/view', [ArticlesController::class, 'show']);
