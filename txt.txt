@@ -1,0 +1,206 @@
+═══════════════════════════════════════════════════════
+SEO AUTOMATION SYSTEM — DEVELOPMENT LOG
+═══════════════════════════════════════════════════════
+
+PROJECT STACK
+─────────────
+Frontend  : Vue 3 + Vite + Tailwind CSS v3
+Backend   : ThinkPHP 8 + MySQL
+AI        : Groq API — Llama 3.1 8B Instant
+Indexing  : Google Indexing API + Bing Webmaster API
+Logging   : Telegram Bot API
+
+═══════════════════════════════════════════════════════
+DAY 1 — FRONTEND LAYOUT (COMPLETE)
+═══════════════════════════════════════════════════════
+
+SETUP
+─────
+- Created Vue 3 + Vite project
+- Fixed Vite v6 rolldown bug on Windows (pinned to Vite 5)
+- Installed Tailwind CSS v3, Vue Router 4, Pinia, Heroicons
+- Installed vue3-apexcharts + apexcharts for charts
+- Configured Tailwind dark mode (class strategy)
+- Set up Vue Router with 5 page routes
+- Registered ApexCharts globally in main.js
+
+FILES CREATED
+─────────────
+src/main.js               — App entry, registers Pinia, Router, ApexCharts
+src/App.vue               — App shell, sidebar nav, top header, dark/light toggle
+src/router/index.js       — 5 routes: /, /sites, /library, /articles, /settings
+src/pages/Dashboard.vue   — Overview page
+src/pages/Sites.vue       — Site management page
+src/pages/Library.vue     — Media library page
+src/pages/Articles.vue    — Articles management page
+src/pages/Settings.vue    — System configuration page
+
+PAGE FUNCTIONALITY
+──────────────────
+Dashboard
+  - 4 stats cards: Total Sites, Articles Today, Total Articles, Indexed Today
+  - Area chart: Publishing & Indexing Trends (last 7 days)
+  - Donut chart: Content Status Breakdown (Published/Pending/Failed)
+  - Recent Articles table with status badges
+  - Live Telegram Activity log feed
+  - Dark/light mode toggle in header
+
+Sites
+  - Full sites table with domain, keywords, category, articles count, status
+  - Search by domain or keyword
+  - Filter by status (Active/Paused)
+  - Add Site modal with domain, category, 3 keyword fields
+  - Edit and Delete action buttons per row
+  - Pagination UI
+
+Media Library
+  - Stats row: Total Images, Total Videos, Storage Used, Unique Tags
+  - Media grid with image/video thumbnails
+  - Hover actions: View, Delete
+  - Search by name or tag
+  - Filter by type (Image/Video)
+  - Upload modal with drag/drop zone, tags, type selector
+  - Empty state when no results
+
+Articles
+  - Stats row: Total Articles, Published, Pending, Failed
+  - Full articles table with title, site, keyword, media count,
+    originality score bar, status badge, publish date
+  - Search by title, site or keyword
+  - Filter by status and by site
+  - Generate Now modal: select site, keyword, media type
+  - Pagination UI
+
+Settings
+  - AI Configuration: Groq API key, model selector, max tokens,
+    originality threshold
+  - Scheduler: articles per day, generation time, timezone,
+    auto scheduler toggle
+  - Indexing APIs: Google API key, Search Console property,
+    Bing API key, auto-submit toggles for Google and Bing
+  - Telegram Bot: bot token, chat ID, log event checkboxes,
+    test message button
+  - Save button with success toast notification
+  - All API keys have show/hide password toggle
+
+═══════════════════════════════════════════════════════
+DAY 2 — BACKEND LAYOUT (COMPLETE)
+═══════════════════════════════════════════════════════
+
+SETUP
+─────
+- Installed Laragon (PHP 8.3, MySQL 8, Apache)
+- Created ThinkPHP 8 project via Composer
+- Created seo_automation database via MySQL terminal
+- Connected ThinkPHP to database via .env config
+
+DATABASE — 6 TABLES CREATED
+─────────────────────────────
+sites         — id, domain, keyword_1/2/3, category, status,
+                articles_count, created_at, updated_at
+articles      — id, site_id (FK), title, description, body,
+                keyword, category, originality_score, status,
+                google_indexed, bing_indexed, created_at, updated_at
+media         — id, filename, filepath, type, size, tags, created_at
+article_media — id, article_id (FK), media_id (FK) [pivot table]
+logs          — id, site_id, article_id, event, message,
+                status, created_at
+settings      — id, key, value, updated_at
+
+CONTROLLERS — 6 CREATED
+────────────────────────
+SchedulerController.php
+  - run() — loops active sites, reads keywords,
+    queues article generation per keyword per day
+
+ArticleGeneratorController.php
+  - generate() — builds prompt, calls Groq API skeleton,
+    returns structured article data
+  - buildPrompt() — constructs SEO article prompt with
+    keyword and category
+
+OriginalityController.php
+  - check() — runs originality check against threshold,
+    returns pass/fail with score and action
+
+PublisherController.php
+  - publish() — saves article to DB, attaches media by
+    keyword tag, increments site article count, logs event
+  - attachMedia() — finds media by keyword tag, links to article
+
+IndexerController.php
+  - index() — submits URL to Google and Bing indexing
+    API skeletons, updates indexed flags in DB
+
+TelegramController.php
+  - send() — checks event config, formats message with
+    emoji, calls Telegram Bot API skeleton, logs to DB
+  - formatMessage() — formats log with emoji and timestamp
+
+MODELS — 5 CREATED
+───────────────────
+Site.php
+  - Relationships: hasMany Articles
+  - Accessors: getKeywordsAttr (returns keywords as array)
+  - Scopes: active()
+
+Article.php
+  - Relationships: belongsTo Site, belongsToMany Media
+  - Scopes: published(), failed(), pending()
+
+Media.php
+  - Relationships: belongsToMany Articles
+  - Accessors: getTagsArrayAttr (returns tags as array)
+  - Scopes: images(), videos()
+  - Static: findByKeyword()
+
+Log.php
+  - Relationships: belongsTo Site, belongsTo Article
+  - Scopes: errors(), today()
+  - Static: record() helper for quick log creation
+
+Setting.php
+  - Static: get(), set(), setMany()
+  - No relationships — pure key/value config store
+
+ROUTES — 6 REGISTERED (route/app.php)
+──────────────────────────────────────
+GET  api/scheduler/run
+POST api/article/generate
+POST api/originality/check
+POST api/publisher/publish
+POST api/indexer/index
+POST api/telegram/send
+
+═══════════════════════════════════════════════════════
+DAY 3 PLAN — API INTEGRATION
+═══════════════════════════════════════════════════════
+
+WHAT WE WILL BUILD
+──────────────────
+1. Groq API integration in ArticleGeneratorController
+   - Real HTTP call to Groq
+   - Parse title, description, body from response
+   - Handle errors and retries
+
+2. Originality check integration
+   - Connect to originality checking service
+   - Auto regenerate if below threshold
+
+3. Google Indexing API integration
+   - OAuth2 authentication
+   - Submit URL on publish
+
+4. Bing Webmaster API integration
+   - API key authentication
+   - Submit URL on publish
+
+5. Telegram Bot API integration
+   - Send formatted log messages
+   - Support channel and group
+
+6. Full automation pipeline
+   - Scheduler → Generator → Originality →
+     Publisher → Indexer → Telegram
+
+═══════════════════════════════════════════════════════
