@@ -39,6 +39,8 @@ class DashboardController
                 'published'      => $published,
                 'pending'        => $pending,
                 'failed'         => $failed,
+                'tasks_due'     => Db::table('scheduled_tasks')->where('status','active')->where('next_run_at','<=',date('Y-m-d H:i:s'))->count(),
+'tasks_active'  => Db::table('scheduled_tasks')->where('status','active')->count(),
             ],
         ]);
     }

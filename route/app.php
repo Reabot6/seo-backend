@@ -14,6 +14,10 @@ use app\controller\SitesController;
 use app\controller\ArticlesController;
 use app\controller\MediaController;
 use app\controller\DashboardController;
+use app\controller\SiteConfigController;
+use app\controller\ScheduledTaskController;
+// top with other imports
+use app\controller\FriendlyLinksController;
 
 // ─────────────────────────────────────────
 // CORS PREFLIGHT
@@ -118,7 +122,22 @@ Route::get('/api/debug-env', function() {
     Route::post('api/media/upload',        [MediaController::class, 'upload']);
     Route::delete('api/media/:id',         [MediaController::class, 'destroy']);
 
-    // DASHBOARD
+    // Site config
+Route::get('api/site/config',    [SiteConfigController::class, 'show']);
+Route::post('api/site/config',   [SiteConfigController::class, 'update']);
+
+// Scheduled tasks
+Route::get('api/tasks',          [ScheduledTaskController::class, 'index']);
+Route::post('api/tasks',         [ScheduledTaskController::class, 'store']);
+Route::post('api/tasks/update',  [ScheduledTaskController::class, 'update']);
+Route::delete('api/tasks/delete',[ScheduledTaskController::class, 'destroy']);
+Route::post('api/tasks/run',     [ScheduledTaskController::class, 'run']);
+// inside the Route::group, after tasks routes
+Route::get('api/links',          [FriendlyLinksController::class, 'index']);
+Route::post('api/links',         [FriendlyLinksController::class, 'store']);
+Route::post('api/links/update',  [FriendlyLinksController::class, 'update']);
+Route::delete('api/links/delete',[FriendlyLinksController::class, 'destroy']);  
+// DASHBOARD
     Route::get('api/dashboard/stats',           [DashboardController::class, 'stats']);
     Route::get('api/dashboard/recent-articles', [DashboardController::class, 'recentArticles']);
     Route::get('api/dashboard/logs',            [DashboardController::class, 'logs']);

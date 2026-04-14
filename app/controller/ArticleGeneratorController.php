@@ -30,12 +30,12 @@ class ArticleGeneratorController
      * POST /api/article/generate
      * Manual trigger from frontend
      */
-  public function generate(Request $request)
+public function generate(Request $request)
 {
     $siteId    = $request->post('site_id');
     $keyword   = $request->post('keyword');
     $mediaType = $request->post('media_type', 'image');
-    $language  = $request->post('language', null); // add this
+    $language  = $request->post('language', 'en'); // always read it
 
     if (!$siteId || !$keyword) {
         return json(['status' => 'error', 'message' => 'site_id and keyword are required'], 400);
@@ -46,10 +46,8 @@ class ArticleGeneratorController
         return json(['status' => 'error', 'message' => 'Site not found'], 404);
     }
 
-    // Override site language if explicitly passed
-    if ($language) {
-        $site['language'] = $language;
-    }
+    // Always override — frontend language selection wins
+    $site['language'] = $language;
 
     $result = $this->generateArticle($site, $keyword, $mediaType);
     return json($result);
