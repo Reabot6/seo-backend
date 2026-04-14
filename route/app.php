@@ -63,6 +63,9 @@ Route::group('', function () {
 Route::get('/api/debug-env', function() {
     return json($_ENV);
 });
+Route::get('/api/debug-env', function() {
+    return json(getenv());
+});
     // SETTINGS
     Route::get('api/settings/language',        [SettingsController::class, 'language']);
     Route::get('api/settings/group/indexing',  [SettingsController::class, 'indexingSettings']);
