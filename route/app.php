@@ -82,7 +82,7 @@ Route::get('/api/debug-env', function() {
     // ARTICLE GENERATOR
     Route::get('api/article/test-groq',        [ArticleGeneratorController::class, 'testGroq']);
     Route::post('api/article/generate',        [ArticleGeneratorController::class, 'generate']);
-
+    Route::post('api/article/update', [ArticlesController::class, 'update']);
     // ORIGINALITY
     Route::post('api/originality/check',       [OriginalityController::class, 'check']);
 

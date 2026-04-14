@@ -32,13 +32,11 @@ class ArticlesController
                           ->order('created_at', 'desc')
                           ->select()->toArray();
 
-        // Attach site domain to each article
-        $siteIds  = array_unique(array_column($articles, 'site_id'));
-        $sites    = Db::table('sites')->whereIn('id', $siteIds)->column('domain', 'id');
+        $siteIds = array_unique(array_column($articles, 'site_id'));
+        $sites   = Db::table('sites')->whereIn('id', $siteIds)->column('domain', 'id');
 
         foreach ($articles as &$article) {
             $article['site_domain'] = $sites[$article['site_id']] ?? '';
-            // Don't return full body in list
             unset($article['body']);
         }
 
@@ -52,25 +50,50 @@ class ArticlesController
     }
 
     // GET /api/articles/:id
-public function show(Request $request, $id = null)
-{
-    $id = $id ?: $request->get('id');
-    
-    if (!$id) {
-        return json(['status' => 'error', 'message' => 'No ID'], 400);
+    public function show(Request $request, $id = null)
+    {
+        $id = $id ?: $request->get('id');
+
+        if (!$id) {
+            return json(['status' => 'error', 'message' => 'No ID'], 400);
+        }
+
+        $rows = Db::query(
+            "SELECT a.*, s.domain as site_domain FROM articles a LEFT JOIN sites s ON a.site_id = s.id WHERE a.id = ?",
+            [(int)$id]
+        );
+
+        if (empty($rows)) {
+            return json(['status' => 'error', 'message' => 'Not found'], 404);
+        }
+
+        return json(['status' => 'success', 'data' => $rows[0]]);
     }
 
-    $rows = Db::query(
-        "SELECT a.*, s.domain as site_domain FROM articles a LEFT JOIN sites s ON a.site_id = s.id WHERE a.id = ?",
-        [(int)$id]
-    );
+    // POST /api/article/update
+    public function update(Request $request)
+    {
+        $id   = $request->post('id');
+        $body = $request->post('body');
 
-    if (empty($rows)) {
-        return json(['status' => 'error', 'message' => 'Not found'], 404);
+        if (!$id) {
+            return json(['status' => 'error', 'message' => 'No ID'], 400);
+        }
+
+        $article = Db::table('articles')->where('id', (int)$id)->find();
+        if (!$article) {
+            return json(['status' => 'error', 'message' => 'Article not found'], 404);
+        }
+
+        Db::table('articles')->where('id', (int)$id)->update([
+            'body'       => $body,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        return json(['status' => 'success', 'message' => 'Article updated']);
     }
 
-    return json(['status' => 'success', 'data' => $rows[0]]);
-}    // DELETE /api/articles/:id
+    // DELETE /api/articles/:id
     public function destroy($id)
     {
         $article = Db::table('articles')->where('id', $id)->find();
@@ -83,28 +106,29 @@ public function show(Request $request, $id = null)
 
         return json(['status' => 'success', 'message' => 'Article deleted successfully']);
     }
+
     public function debug($id)
-{
-    $raw = Db::query("SELECT id, LENGTH(body) as len, SUBSTRING(body, 1, 50) as preview FROM articles WHERE id = ?", [$id]);
-    return json(['raw' => $raw]);
-}
-public function destroyById(Request $request)
-{
-    $id = $request->get('id');
-    
-    if (!$id) {
-        return json(['status' => 'error', 'message' => 'No ID'], 400);
+    {
+        $raw = Db::query("SELECT id, LENGTH(body) as len, SUBSTRING(body, 1, 50) as preview FROM articles WHERE id = ?", [$id]);
+        return json(['raw' => $raw]);
     }
 
-    $article = Db::table('articles')->where('id', (int)$id)->find();
-    if (!$article) {
-        return json(['status' => 'error', 'message' => 'Article not found'], 404);
+    public function destroyById(Request $request)
+    {
+        $id = $request->get('id');
+
+        if (!$id) {
+            return json(['status' => 'error', 'message' => 'No ID'], 400);
+        }
+
+        $article = Db::table('articles')->where('id', (int)$id)->find();
+        if (!$article) {
+            return json(['status' => 'error', 'message' => 'Article not found'], 404);
+        }
+
+        Db::table('articles')->where('id', (int)$id)->delete();
+        Db::table('article_media')->where('article_id', (int)$id)->delete();
+
+        return json(['status' => 'success', 'message' => 'Article deleted']);
     }
-
-    Db::table('articles')->where('id', (int)$id)->delete();
-    Db::table('article_media')->where('article_id', (int)$id)->delete();
-
-    return json(['status' => 'success', 'message' => 'Article deleted']);
-}
-
 }
