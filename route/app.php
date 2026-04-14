@@ -51,6 +51,16 @@ Route::group('', function () {
     Route::get('api/auth/me',               [AuthController::class, 'me']);
     Route::post('api/auth/change-password', [AuthController::class, 'changePassword']);
 
+    Route::get('/api/debug-env', function() {
+    return json([
+        'host'     => env('MYSQL_ADDON_HOST'),
+        'db'       => env('MYSQL_ADDON_DB'),
+        'user'     => env('MYSQL_ADDON_USER'),
+        'port'     => env('MYSQL_ADDON_PORT'),
+        'password' => env('MYSQL_ADDON_PASSWORD') ? 'SET' : 'NOT SET',
+    ]);
+});
+
     // SETTINGS
     Route::get('api/settings/language',        [SettingsController::class, 'language']);
     Route::get('api/settings/group/indexing',  [SettingsController::class, 'indexingSettings']);
