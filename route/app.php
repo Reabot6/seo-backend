@@ -60,7 +60,9 @@ Route::group('', function () {
         'password' => env('MYSQL_ADDON_PASSWORD') ? 'SET' : 'NOT SET',
     ]);
 });
-
+Route::get('/api/debug-env', function() {
+    return json($_ENV);
+});
     // SETTINGS
     Route::get('api/settings/language',        [SettingsController::class, 'language']);
     Route::get('api/settings/group/indexing',  [SettingsController::class, 'indexingSettings']);
