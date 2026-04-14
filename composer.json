@@ -26,7 +26,8 @@
         "topthink/think-filesystem": "^2.0|^3.0",
         "firebase/php-jwt": "^7.0",
         "pragmarx/google2fa": "^9.0",
-        "bacon/bacon-qr-code": "^3.1"
+        "bacon/bacon-qr-code": "^3.1",
+        "ext-pdo_mysql": "*"
     },
     "require-dev": {
         "topthink/think-dumper": "^1.0",
