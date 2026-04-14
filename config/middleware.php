@@ -1,7 +1,5 @@
 <?php
 return [
-    'alias' => [
-        'cors' => \app\middleware\CorsMiddleware::class,
-    ],
-    'priority' => [],
+    // Global middleware — runs on every request including OPTIONS
+    \app\middleware\CorsMiddleware::class,
 ];
