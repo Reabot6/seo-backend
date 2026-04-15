@@ -1,7 +1,6 @@
 <?php
 use think\facade\Route;
 
-// Import all controllers
 use app\controller\SettingsController;
 use app\controller\SchedulerController;
 use app\controller\ArticleGeneratorController;
@@ -16,34 +15,23 @@ use app\controller\MediaController;
 use app\controller\DashboardController;
 use app\controller\SiteConfigController;
 use app\controller\ScheduledTaskController;
-// top with other imports
 use app\controller\FriendlyLinksController;
 
 // ─────────────────────────────────────────
-// CORS PREFLIGHT
+// CORS PREFLIGHT — must be OUTSIDE the middleware group
 // ─────────────────────────────────────────
 Route::options(':path', function () {
-    return response('', 200)
+    return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+        ->header('Access-Control-Max-Age', '86400');
 })->pattern(['path' => '.*']);
 
 // ─────────────────────────────────────────
-// ALL ROUTES WITH CORS MIDDLEWARE
+// ALL ROUTES
 // ─────────────────────────────────────────
-Route::get('api/test-db', function() {
-    try {
-        $result = \think\facade\Db::query('SELECT 1 as test');
-        return json(['status' => 'connected', 'result' => $result]);
-    } catch (\Exception $e) {
-        return json(['status' => 'error', 'message' => $e->getMessage()]);
-    }
-});
 Route::group('', function () {
-
-    Route::get('api/article/view', [ArticlesController::class, 'show']);
-    Route::delete('api/article/delete', [ArticlesController::class, 'destroyById']);
 
     // AUTH
     Route::post('api/auth/login',           [AuthController::class, 'login']);
@@ -55,21 +43,6 @@ Route::group('', function () {
     Route::get('api/auth/me',               [AuthController::class, 'me']);
     Route::post('api/auth/change-password', [AuthController::class, 'changePassword']);
 
-    Route::get('/api/debug-env', function() {
-    return json([
-        'host'     => env('MYSQL_ADDON_HOST'),
-        'db'       => env('MYSQL_ADDON_DB'),
-        'user'     => env('MYSQL_ADDON_USER'),
-        'port'     => env('MYSQL_ADDON_PORT'),
-        'password' => env('MYSQL_ADDON_PASSWORD') ? 'SET' : 'NOT SET',
-    ]);
-});
-Route::get('/api/debug-env', function() {
-    return json($_ENV);
-});
-Route::get('/api/debug-env', function() {
-    return json(getenv());
-});
     // SETTINGS
     Route::get('api/settings/language',        [SettingsController::class, 'language']);
     Route::get('api/settings/group/indexing',  [SettingsController::class, 'indexingSettings']);
@@ -86,7 +59,10 @@ Route::get('/api/debug-env', function() {
     // ARTICLE GENERATOR
     Route::get('api/article/test-groq',        [ArticleGeneratorController::class, 'testGroq']);
     Route::post('api/article/generate',        [ArticleGeneratorController::class, 'generate']);
-    Route::post('api/article/update', [ArticlesController::class, 'update']);
+    Route::post('api/article/update',          [ArticlesController::class, 'update']);
+    Route::get('api/article/view',             [ArticlesController::class, 'show']);
+    Route::delete('api/article/delete',        [ArticlesController::class, 'destroyById']);
+
     // ORIGINALITY
     Route::post('api/originality/check',       [OriginalityController::class, 'check']);
 
@@ -122,22 +98,24 @@ Route::get('/api/debug-env', function() {
     Route::post('api/media/upload',        [MediaController::class, 'upload']);
     Route::delete('api/media/:id',         [MediaController::class, 'destroy']);
 
-    // Site config
-Route::get('api/site/config',    [SiteConfigController::class, 'show']);
-Route::post('api/site/config',   [SiteConfigController::class, 'update']);
+    // SITE CONFIG
+    Route::get('api/site/config',          [SiteConfigController::class, 'show']);
+    Route::post('api/site/config',         [SiteConfigController::class, 'update']);
 
-// Scheduled tasks
-Route::get('api/tasks',          [ScheduledTaskController::class, 'index']);
-Route::post('api/tasks',         [ScheduledTaskController::class, 'store']);
-Route::post('api/tasks/update',  [ScheduledTaskController::class, 'update']);
-Route::delete('api/tasks/delete',[ScheduledTaskController::class, 'destroy']);
-Route::post('api/tasks/run',     [ScheduledTaskController::class, 'run']);
-// inside the Route::group, after tasks routes
-Route::get('api/links',          [FriendlyLinksController::class, 'index']);
-Route::post('api/links',         [FriendlyLinksController::class, 'store']);
-Route::post('api/links/update',  [FriendlyLinksController::class, 'update']);
-Route::delete('api/links/delete',[FriendlyLinksController::class, 'destroy']);  
-// DASHBOARD
+    // SCHEDULED TASKS
+    Route::get('api/tasks',                [ScheduledTaskController::class, 'index']);
+    Route::post('api/tasks',               [ScheduledTaskController::class, 'store']);
+    Route::post('api/tasks/update',        [ScheduledTaskController::class, 'update']);
+    Route::delete('api/tasks/delete',      [ScheduledTaskController::class, 'destroy']);
+    Route::post('api/tasks/run',           [ScheduledTaskController::class, 'run']);
+
+    // FRIENDLY LINKS
+    Route::get('api/links',                [FriendlyLinksController::class, 'index']);
+    Route::post('api/links',               [FriendlyLinksController::class, 'store']);
+    Route::post('api/links/update',        [FriendlyLinksController::class, 'update']);
+    Route::delete('api/links/delete',      [FriendlyLinksController::class, 'destroy']);
+
+    // DASHBOARD
     Route::get('api/dashboard/stats',           [DashboardController::class, 'stats']);
     Route::get('api/dashboard/recent-articles', [DashboardController::class, 'recentArticles']);
     Route::get('api/dashboard/logs',            [DashboardController::class, 'logs']);
