@@ -38,6 +38,14 @@ class ExceptionHandle extends Handle
     {
         // 使用内置的方式记录异常日志
         parent::report($exception);
+
+        // Write exception details to stderr so they appear in Railway deployment logs
+        fwrite(STDERR, sprintf(
+            "[EXCEPTION] %s in %s on line %d\n",
+            $exception->getMessage(),
+            $exception->getFile(),
+            $exception->getLine()
+        ));
     }
 
     /**
