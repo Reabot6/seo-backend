@@ -16,18 +16,6 @@ use app\controller\DashboardController;
 use app\controller\SiteConfigController;
 use app\controller\ScheduledTaskController;
 use app\controller\FriendlyLinksController;
-
-// ─────────────────────────────────────────
-// CORS PREFLIGHT — must be OUTSIDE the middleware group
-// ─────────────────────────────────────────
-Route::options(':path', function () {
-    return response('', 204)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-        ->header('Access-Control-Max-Age', '86400');
-})->pattern(['path' => '.*']);
-
 // ─────────────────────────────────────────
 // ALL ROUTES
 // ─────────────────────────────────────────
