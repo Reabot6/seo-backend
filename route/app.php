@@ -16,6 +16,7 @@ use app\controller\DashboardController;
 use app\controller\SiteConfigController;
 use app\controller\ScheduledTaskController;
 use app\controller\FriendlyLinksController;
+use app\controller\DebugController;
 // ─────────────────────────────────────────
 // ALL ROUTES
 // ─────────────────────────────────────────
@@ -102,6 +103,9 @@ Route::group('', function () {
     Route::post('api/links',               [FriendlyLinksController::class, 'store']);
     Route::post('api/links/update',        [FriendlyLinksController::class, 'update']);
     Route::delete('api/links/delete',      [FriendlyLinksController::class, 'destroy']);
+
+    // DEBUG
+    Route::get('api/debug/config',              [DebugController::class, 'config']);
 
     // DASHBOARD
     Route::get('api/dashboard/stats',           [DashboardController::class, 'stats']);
