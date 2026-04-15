@@ -1,19 +1,13 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006~2019 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-// $Id$
+// Router for PHP built-in server
+// This file handles routing for the development server since it doesn't support .htaccess
 
-if (is_file($_SERVER["DOCUMENT_ROOT"] . $_SERVER["SCRIPT_NAME"])) {
-    return false;
-} else {
-    $_SERVER["SCRIPT_FILENAME"] = __DIR__ . '/index.php';
+$requested_file = __DIR__ . $_SERVER['REQUEST_URI'];
 
-    require __DIR__ . "/index.php";
+// If the requested file/directory exists and is not a directory, serve it
+if (file_exists($requested_file) && !is_dir($requested_file)) {
+    return false; // Let the server serve the file
 }
+
+// Otherwise, route to index.php
+require __DIR__ . '/index.php';
